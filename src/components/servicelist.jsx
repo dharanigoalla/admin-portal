@@ -85,7 +85,7 @@ const ServicesList = ({ services, setServices}) => {
 
                 }}>
                   <Box className='relative w-full m-0'>
-                  >
+                  
                       <img src={get_s3_image_url(service.image_url_2)} alt={service.name} className='absolute right-0 top-0 max-w-full h-full w-full' />
                       <Typography variant="h6" className='absolute bottom-3 left-3'>{service.name}</Typography>
                   </Box>
