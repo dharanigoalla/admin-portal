@@ -1,17 +1,21 @@
 import axios from 'axios'
 
-
-console.log('here is the base url', process.env.REACT_APP_API_BASE_URL)
 const axiosInstance = axios.create({
-baseURL:process.env.REACT_APP_API_BASE_URL,
+baseURL:'https://9c3f-2607-fb91-1c61-804f-99ba-d8b3-c27e-7ec5.ngrok-free.app/',
+ headers: {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+    // Add any other headers you need
+  }
 })
 
  const axiosInstanceLambda = axios.create({
-    baseURL : process.env.REACT_APP_LAMBDA_BASE_URL,
+    baseURL : 'https://api.localnest4u.com',
  })
 const getServices = async() => {
-const response = await axiosInstance.get('/services')
-return response.data;
+    const response = await axiosInstance.get('/services')
+    console.log('services:', response.data);
+    return response.data;
 }
 const updateService = async(formDataTosend, serviceId)=>{
     const response1 = await axiosInstance.put(`/services/${serviceId}`,formDataTosend)
@@ -23,19 +27,41 @@ const createService = async(formDataTosend)=>{
 }
 const deleteService = async(serviceId)=>{
     const response4 = await axiosInstance.delete(`/services/${serviceId}`)
+    console.log('deleteid',serviceId );
     return response4.data;
 }
-
-const getPreSignedUrl = async(fileName, fileType,folderPath)=>{
-    const response = await axiosInstanceLambda.post('/assets/get_singed_url',{
+ 
+const getPreSignedUrl = async(fileName,fileType,folderPath = "icons/services")=>{
+    try{
+    const response = await axiosInstanceLambda.post('/get_signed_url',{
         fileName,
         folderPath,
         fileType,
     });
-    return response.data;
-
+   console.log("Pre-Signed URL Response:", response.data); 
+   return response.data.uploadURL;
+    
+} catch (error) {
+  console.error("Error getting pre-signed URL:", error);
+  throw error;
 }
-//const uploadFile = async(file)=>{
-    //const response3 = await axiosInstance.get('', )
+};
+    
 
-export {getServices, updateService, createService,getPreSignedUrl}
+const uploadFileToS3 = async(file, signedUrl) =>{
+    
+    const response = await axiosInstance.put(signedUrl, file,{
+        headers: {
+            'Content-Type': file.type, 
+          },
+     
+    });
+   // return response.data; 
+
+};
+    
+
+
+
+
+export {getServices, updateService, createService, deleteService,getPreSignedUrl,uploadFileToS3}
