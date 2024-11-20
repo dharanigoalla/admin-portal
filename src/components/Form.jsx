@@ -4,7 +4,7 @@ import { TextField, Checkbox, Button, FormLabel, Stack, Box, Alert } from '@mui/
 import { createService, updateService,getPreSignedUrl, uploadFileToS3 } from "../apis/api";
  const folderPath = 'apoorva/test';
 const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
- 
+
   const [formdata, setFormdata] = useState({
     name: "",
     backgroundcolor: "#FFFFFF",
@@ -13,9 +13,9 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
     rank :7,
     requestenabled: false,
   });
-  const [successMessage, setSuccessMessage] = useState(""); 
+  const [successMessage, setSuccessMessage] = useState("");
 
- 
+
   useEffect(() => {
     if (Initialdata && !isCreating) {
       setFormdata({
@@ -27,15 +27,15 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
     }
   }, [Initialdata, isCreating]);
 
- 
+ console.log('formdata', formdata, Initialdata);
   const handleChange = async (e) => {
     const { name, value, type, checked, files } = e.target ||{};
-    
+
     if (type === "file") {
       console.log(files[0].type, files[0].name);
       const fileType = files[0].type
       const fileName = files[0].name
-      
+
       const responseUrl = await getPreSignedUrl(fileName, fileType, folderPath);
       console.log('here', responseUrl);
       const response = await uploadFileToS3(files[0], responseUrl);
@@ -56,8 +56,8 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
       });
     }
   };
-  
- 
+
+
    const onChangeSubmit = async (e) => {
     e.preventDefault();
     /*try {
@@ -67,8 +67,8 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
       alert("Form validation failed. Please check your inputs.");
       return;
     }*/
-   
-    
+
+
     const formDataToSend = {
    "service_id" : serviceId,
     "rank": formdata.rank,
@@ -79,7 +79,7 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
       formDataToSend.image_url = `${folderPath}/${formdata.Imageupload.name}`;
     }
 
- 
+
     try {
       let data;
       if (isCreating) {
@@ -98,14 +98,14 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
         image_url: "",
       });
 
-     
+
       setSuccessMessage("Form submitted successfully!");
     } catch (error) {
       console.error("Error:", error);
     }
   };
 
-  
+
   return (
     <Box className='max-w-md mx-auto p-2 bg-gray-100 rounded-lg shadow border-gray-200'>
       {successMessage && (
@@ -114,12 +114,12 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
         </Alert>
       )}
       <form onSubmit={onChangeSubmit}  className='flex flex-col'>
-       
+
         <Stack direction={"column"} gap={1} className="w-full">
           <FormLabel htmlFor="service-name"  sx ={{ color : 'grey '}}className="font-semibold text-lg">
             Service Name
           </FormLabel>
-          <TextField 
+          <TextField
             id="service-name"
             type="text"
             name="name"
@@ -160,7 +160,7 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
           />
         </Stack>
 
-        
+
         <Stack direction="column" gap={1} className="w-full">
           <FormLabel htmlFor="image-upload" sx ={{ color : 'grey '}}className="font-semibold text-base text-black">
             Image Upload
@@ -182,7 +182,7 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
           />
         </Stack>
 
-       
+
         <Stack direction="row" gap={2} className="w-full" alignItems="center">
       <Box display="flex" alignItems="center">
       <FormLabel htmlFor="requestenabled"sx ={{ color :'grey'}} className="font-sans text-base">
@@ -199,7 +199,7 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
 </Stack>
 
 
-       
+
         <Button type="submit" variant="contained" color="primary">
           Submit
         </Button>

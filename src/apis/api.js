@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const axiosInstance = axios.create({
-baseURL:'https://9c3f-2607-fb91-1c61-804f-99ba-d8b3-c27e-7ec5.ngrok-free.app/',
+baseURL: process.env.REACT_APP_API_BASE_URL,
  headers: {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
@@ -30,7 +30,7 @@ const deleteService = async(serviceId)=>{
     console.log('deleteid',serviceId );
     return response4.data;
 }
- 
+
 const getPreSignedUrl = async(fileName,fileType,folderPath = "icons/services")=>{
     try{
     const response = await axiosInstanceLambda.post('/get_signed_url',{
@@ -38,28 +38,28 @@ const getPreSignedUrl = async(fileName,fileType,folderPath = "icons/services")=>
         folderPath,
         fileType,
     });
-   console.log("Pre-Signed URL Response:", response.data); 
+   console.log("Pre-Signed URL Response:", response.data);
    return response.data.uploadURL;
-    
+
 } catch (error) {
   console.error("Error getting pre-signed URL:", error);
   throw error;
 }
 };
-    
+
 
 const uploadFileToS3 = async(file, signedUrl) =>{
-    
+
     const response = await axiosInstance.put(signedUrl, file,{
         headers: {
-            'Content-Type': file.type, 
+            'Content-Type': file.type,
           },
-     
+
     });
-   // return response.data; 
+   // return response.data;
 
 };
-    
+
 
 
 
