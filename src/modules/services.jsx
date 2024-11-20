@@ -26,11 +26,11 @@ const Services = ()=>{
   return (
     <div>
       <Box className="mt-8">
-        <ServicesList services={services} />
+        <ServicesList services={services}  setServices={setServices}/>
       </Box>
     </div>
   );
-};;
+};
 
 export default Services;
 

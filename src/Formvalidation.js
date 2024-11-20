@@ -23,4 +23,5 @@ export const user = z.object({
       "Only .jpg, .jpeg, .png and .webp formats are supported."
     ),
   requestenabled: z.boolean(),
+  //rank: z.number.int()
 });
