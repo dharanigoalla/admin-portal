@@ -14,7 +14,7 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
     requestenabled: false,
   });
   const [successMessage, setSuccessMessage] = useState(""); 
-
+  const [imagePreview, setImagePreview] = useState("");
  
   useEffect(() => {
     if (Initialdata && !isCreating) {
@@ -24,6 +24,7 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
         Imageupload2: Initialdata.image_url_2,
         requestenabled: Initialdata.request_enabled,
       });
+      setImagePreview(Initialdata.image_url_2?`(https://ri-classifieds.s3.us-west-2.amazonaws.com${Initialdata.image_url_2})`: " ");
     }
   }, [Initialdata, isCreating]);
 
@@ -32,6 +33,10 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
     const { name, value, type, checked, files } = e.target ||{};
     
     if (type === "file") {
+      if (files[0]){
+        const fileUrl = URL.createObjectURL(files[0]);
+        setImagePreview(fileUrl);
+      }
       console.log(files[0].type, files[0].name);
       const fileType = files[0].type
       const fileName = files[0].name
@@ -97,6 +102,7 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
         requestenabled: false,
         image_url: "",
       });
+      setImagePreview("");
 
      
       setSuccessMessage("Form submitted successfully!");
@@ -159,12 +165,16 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
             }}
           />
         </Stack>
-
+         
         
         <Stack direction="column" gap={1} className="w-full">
           <FormLabel htmlFor="image-upload" sx ={{ color : 'grey '}}className="font-semibold text-base text-black">
             Image Upload
           </FormLabel>
+          {imagePreview &&(
+            <Box mb={2}>
+              <img src={imagePreview} alt= "image" style = {{maxWidth :" 100%", maxHeight : '200px', objectFit:'contain'}}/>
+            </Box>)}
           <TextField
             id="image-upload"
             type="file"
