@@ -1,81 +1,63 @@
 import { useState, useEffect } from "react";
-import { TextField, Checkbox, Button, FormLabel, Stack, Box, Alert } from '@mui/material';
+import {TextField, Checkbox, Button, FormLabel, Stack, Box, Alert, Typography, LinearProgress} from '@mui/material';
 import { createService, updateService, getPreSignedUrl, uploadFileToS3 } from "../apis/api";
+import {get_s3_image_url} from "../utils/utils";
 
 const folderPath = '/apoorva/test';
 
-const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
-  const [formdata, setFormdata] = useState({
-    name: "",
-    backgroundcolor: "#FFFFFF",
-    Imageupload: null,
-    Imageupload2: "",
-    rank: "7",
-    requestenabled: false,
-  });
+const FormCreation = ({ serviceId, Initialdata, isCreating = false, onUpdate, onCreate }) => {
+  const [formdata, setFormdata] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
-  const [imagePreview, setImagePreview] = useState("");
+
+  const [imageUplading, setImageUplading] = useState(false);
 
   useEffect(() => {
     if (Initialdata && !isCreating) {
-      setFormdata({
-        name: Initialdata.name,
-        backgroundcolor: Initialdata.bg_color,
-        Imageupload2: Initialdata.image_url_2,
-        requestenabled: Initialdata.request_enabled,
-        rank: Initialdata.rank || "7",
-      });
-      setImagePreview(Initialdata.image_url_2 ? `https://ri-classifieds.s3.us-west-2.amazonaws.com${Initialdata.image_url_2}` : "");
+      setFormdata(Initialdata);
     }
   }, [Initialdata, isCreating]);
 
-  console.log('formdata', formdata, Initialdata);
-
   const handleChange = async (e) => {
-    const { name, value, type, checked, files } = e.target || {};
-
-    if (type === "file") {
-      if (files[0]) {
-        const fileUrl = URL.createObjectURL(files[0]);
-        setImagePreview(fileUrl);
-
-        console.log(files[0].type, files[0].name);
-        const fileType = files[0].type;
-        const fileName = files[0].name;
-
-        try {
-          const responseUrl = await getPreSignedUrl(fileName, fileType, folderPath);
-          console.log('here', responseUrl);
-          const response = await uploadFileToS3(files[0], responseUrl);
-          //console.log(response.data, 'upload message');
-          setFormdata(prevFormdata => ({
-            ...prevFormdata,
-            [name]: files[0],
-            imageUrl: responseUrl,
-          }));
-        } catch (error) {
-          console.error("Error uploading file:", error);
-          // Handle the error (e.g., show an error message to the user)
-        }
-      } else {
-        
-        setImagePreview("");
-        setFormdata(prevFormdata => ({
-          ...prevFormdata,
-          [name]: null,
-          imageUrl: null,
-        }));
-      }
-    } else if (type === "checkbox") {
-      setFormdata(prevFormdata => ({
-        ...prevFormdata,
-        [name]: checked,
-      }));
-    } else {
-      setFormdata(prevFormdata => ({
-        ...prevFormdata,
-        [name]: value,
-      }));
+    const { name, value, checked, files } = e.target || {};
+    switch (name) {
+        case "image_url_2":
+          if (files[0]) {
+            const fileType = files[0].type;
+            const fileName = files[0].name;
+            try {
+              setImageUplading(true);
+              const responseUrl = await getPreSignedUrl(fileName, fileType, folderPath);await uploadFileToS3(files[0], responseUrl);
+              setFormdata(prevFormdata => ({
+                ...prevFormdata,
+                image_url_2: `${folderPath}/${fileName}`,
+              }));
+                setImageUplading(false);
+            } catch (error) {
+              setImageUplading(false);
+              console.error("Error uploading file:", error);
+            }
+          }
+            break;
+        case "bg_color":
+            setFormdata(prevFormdata => ({
+              ...prevFormdata,
+              bg_color: value,
+            }));
+            break;
+        case 'request_enabled':
+            setFormdata(prevFormdata => ({
+              ...prevFormdata,
+              request_enabled: checked,
+            }));
+            break;
+        case 'name':
+            setFormdata(prevFormdata => ({
+              ...prevFormdata,
+              name: value,
+            }));
+            break;
+        default:
+            break;
     }
   };
 
@@ -83,39 +65,32 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
     e.preventDefault();
 
     const formDataToSend = {
-      "service_id": serviceId,
-      "rank": formdata.rank.toString(),
+      "rank": formdata.rank?.toString() || '100',
       "name": formdata.name,
-      "bg_color": formdata.backgroundcolor,
-      "request_enabled": formdata.requestenabled
+      "bg_color": formdata.bg_color,
+      "request_enabled": formdata.request_enabled,
+      "image_url_2": formdata.image_url_2,
     };
-    if (formdata.Imageupload) {
-      formDataToSend.image_url_2 = `${folderPath}/${formdata.Imageupload.name}`;
-    }
 
     try {
       let data;
       if (isCreating) {
         data = await createService(formDataToSend);
-        console.log("Service created", data);
+        onCreate && onCreate(data);
       } else {
-        data = await updateService(formDataToSend, serviceId);
-        console.log("Updated successfully", data);
+         await updateService(formDataToSend, formdata.service_id);
+        onUpdate&& onUpdate(formdata);
       }
-      setFormdata({
-        name: "",
-        backgroundcolor: "#FFFFFF",
-        Imageupload: null,
-        rank: "",
-        requestenabled: false,
-        image_url: "",
-      });
-      setImagePreview("");
       setSuccessMessage("Form submitted successfully!");
     } catch (error) {
       console.error("Error:", error);
     }
   };
+
+  const handleImageClick = () => {
+    document.getElementById('image_url_2').click();
+  };
+
 
   return (
     <Box className='max-w-md mx-auto p-2 bg-gray-100 rounded-lg shadow border-gray-200'>
@@ -125,7 +100,7 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
         </Alert>
       )}
       <form onSubmit={onChangeSubmit} className='flex flex-col'>
-        <Stack direction={"column"} gap={1} className="w-full">
+        <Stack direction={"column"} gap={1} className="w-full p-4">
           <FormLabel htmlFor="service-name" sx={{ color: 'grey' }} className="font-semibold text-lg">
             Service Name
           </FormLabel>
@@ -155,8 +130,8 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
             id="background-color"
             required
             type="color"
-            name="backgroundcolor"
-            value={formdata.backgroundcolor}
+            name="bg_color"
+            value={formdata.bg_color}
             onChange={handleChange}
             fullWidth
             variant="outlined"
@@ -170,38 +145,42 @@ const FormCreation = ({ serviceId, Initialdata, isCreating = false }) => {
         </Stack>
 
         <Stack direction="column" gap={1} className="w-full">
-          <FormLabel htmlFor="image-upload" sx={{ color: 'grey' }} className="font-semibold text-base text-black">
-            Image Upload
-          </FormLabel>
-          {imagePreview && (
-            <Box mb={2}>
-              <img src={imagePreview} alt="Image" style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }} />
-            </Box>
-          )}
+          <Box>
+            <Button onClick={handleImageClick}>
+              <Box className='relative'>
+              {formdata.image_url_2 ?
+
+                        <img src={get_s3_image_url(formdata.image_url_2)} alt="preview" style={{ width: '100px', height: '100px' }} />
+                    : <Typography>Upload Image</Typography>}
+                {imageUplading && <LinearProgress />}
+              </Box>
           <TextField
-            id="image-upload"
+            id="image_url_2"
             type="file"
-            name="Imageupload"
+            name="image_url_2"
             onChange={handleChange}
             fullWidth
             variant="outlined"
-            style={{ display: 'block' }}
+            style={{ display: "none" }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: '60px',
                 height: '50px'
               },
             }}
-          />
+          >
+          </TextField>
+            </Button>
+          </Box>
         </Stack>
 
         <Stack direction="row" gap={2} className="w-full" alignItems="center">
           <Box display="flex" alignItems="center">
-            <FormLabel htmlFor="requestenabled" sx={{ color: 'grey' }} className="font-sans text-base">
+            <FormLabel htmlFor="request_enabled" sx={{ color: 'grey' }} className="font-sans text-base">
               Request Enabled
             </FormLabel>
             <Checkbox
-              id="requestenabled"
+              id="request_enabled"
               className="flex items-center"
               checked={formdata.requestenabled}
               onChange={handleChange}

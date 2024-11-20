@@ -1,6 +1,6 @@
 import FormCreation from "./Form";
 import { Accordion, AccordionSummary, AccordionDetails,Typography, Grid2, Box, Button, Drawer, Dialog, DialogTitle, DialogContent } from "@mui/material";
-export const CreateServiceDrawer = ({showForm, onClose}) => {
+export const CreateServiceDrawer = ({showForm, onClose, onCreate}) => {
 
 return (
    <Drawer anchor="right" open={showForm} onClose={onClose}>
@@ -10,7 +10,7 @@ return (
         }}>
        Please provide the necessary details for the new service...
        </Typography>
-          <FormCreation isCreating={true} />
+          <FormCreation isCreating={true} onCreate={onCreate} />
           <Button onClick={onClose}>Close</Button>
         </Box>
       </Drawer>

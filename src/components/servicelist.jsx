@@ -52,6 +52,17 @@ const ServicesList = ({ services, setServices}) => {
     setCurrentService(null);
   };
 
+  const onUpdate = (updatedService) => {
+    const updatedServices = services.map((service) =>
+      service.service_id === updatedService.service_id ? updatedService : service
+    );
+    setServices(updatedServices);
+  }
+
+    const onCreate = (newService) => {
+    setServices([...services, newService]);
+    }
+
   return (
     <Box padding={2}>
       <Box className="flex mb-2 mt-2 justify-end">
@@ -85,7 +96,7 @@ const ServicesList = ({ services, setServices}) => {
 
                 }}>
                   <Box className='relative w-full m-0'>
-                  
+
                       <img src={get_s3_image_url(service.image_url_2)} alt={service.name} className='absolute right-0 top-0 max-w-full h-full w-full' />
                       <Typography variant="h6" className='absolute bottom-3 left-3'>{service.name}</Typography>
                   </Box>
@@ -132,8 +143,9 @@ const ServicesList = ({ services, setServices}) => {
             onClose={handleDialogClose}
             service={currentService}
             setServices={setServices}
+            onUpdate={onUpdate}
         />
-      <CreateServiceDrawer showForm={openCreateService} onClose={onCloseCreateService} />
+      <CreateServiceDrawer showForm={openCreateService} onClose={onCloseCreateService} onCreate={onCreate} />
     </Box>
   );
 };
@@ -168,12 +180,17 @@ const DeleteDialog = (props) => {
 
 
 const EditServiceDialog = (props) => {
-    const { open, onClose, service, setServices } = props;
+    const { open, onClose, service, setServices, onUpdate } = props;
     return (
         <Dialog open={open} onClose={onClose}>
         <DialogTitle>Edit Service</DialogTitle>
         <DialogContent>
-            <FormCreation service={service} setServices={setServices} Initialdata={service} isCreating={false} serviceId={service?.service_id} />
+            <FormCreation
+                service={service}
+                onUpdate={onUpdate}
+                Initialdata={service}
+                isCreating={false}
+            />
         </DialogContent>
         <DialogActions>
             <Button onClick={onClose} color="primary">
