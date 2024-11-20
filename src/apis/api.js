@@ -1,11 +1,13 @@
 import axios from 'axios'
 
+
+console.log('here is the base url', process.env.REACT_APP_API_BASE_URL)
 const axiosInstance = axios.create({
-baseURL:'https://dharaniapi.loca.lt', 
+baseURL:process.env.REACT_APP_API_BASE_URL,
 })
 
  const axiosInstanceLambda = axios.create({
-    baseURL : 'https://my.localnest4u.com',
+    baseURL : process.env.REACT_APP_LAMBDA_BASE_URL,
  })
 const getServices = async() => {
 const response = await axiosInstance.get('/services')
